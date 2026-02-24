@@ -292,6 +292,9 @@ p {
     .contact-layout {
         grid-template-columns: 1fr;
     }
+    .service {
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 560px) {
