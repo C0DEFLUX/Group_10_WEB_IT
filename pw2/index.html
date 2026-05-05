@@ -1,0 +1,162 @@
+// Practical Work #2 JavaScript
+// ES6 features, DOM manipulation, event handling, localStorage, arrays, filter/map/forEach.
+
+const navbar = document.querySelector('#mainNavbar');
+const themeToggle = document.querySelector('#themeToggle');
+const footer = document.querySelector('#siteFooter');
+const currentYear = document.querySelector('#currentYear');
+
+const applySavedTheme = () => {
+    const savedTheme = localStorage.getItem('group10-theme') || 'light';
+    document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+    if (themeToggle) {
+        themeToggle.textContent = savedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    }
+};
+
+const updateNavbarOnScroll = () => {
+    if (!navbar) return;
+    navbar.classList.toggle('navbar-scrolled', window.scrollY > 20);
+};
+
+applySavedTheme();
+updateNavbarOnScroll();
+
+window.addEventListener('scroll', updateNavbarOnScroll);
+
+themeToggle?.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    localStorage.setItem('group10-theme', isDark ? 'dark' : 'light');
+    themeToggle.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+});
+
+if (currentYear) {
+    currentYear.textContent = new Date().getFullYear();
+}
+
+footer?.addEventListener('mouseenter', () => footer.classList.add('footer-hovered'));
+footer?.addEventListener('mouseleave', () => footer.classList.remove('footer-hovered'));
+
+// ---------- Services page dynamic filtering ----------
+const services = [
+    {
+        title: 'Mini Landing Page',
+        category: 'HTML Bootstrap Landing',
+        image: 'images/website1.svg',
+        alt: 'Landing page illustration',
+        description: 'A clean landing page with a hero section, CTA button, Bootstrap grid, and responsive layout.'
+    },
+    {
+        title: 'Simple UI Components',
+        category: 'CSS UI Design',
+        image: 'images/website2.svg',
+        alt: 'UI components illustration',
+        description: 'Buttons, cards, spacing, typography rules, and reusable visual sections for consistent design.'
+    },
+    {
+        title: 'Form Practice',
+        category: 'Forms Validation Security',
+        image: 'images/website3.svg',
+        alt: 'Contact form illustration',
+        description: 'A contact form layout with labels, Bootstrap form controls, validation, and accessible structure.'
+    },
+    {
+        title: 'JavaScript Interaction',
+        category: 'JavaScript DOM Events',
+        image: 'images/website4.svg',
+        alt: 'JavaScript interaction illustration',
+        description: 'Dynamic filtering, dark mode, scroll effects, alerts, and footer interaction using ES6 JavaScript.'
+    }
+];
+
+const servicesContainer = document.querySelector('#servicesContainer');
+const serviceFilter = document.querySelector('#serviceFilter');
+
+const createServiceCard = (service) => `
+    <article class="col-12 col-md-4 service-item">
+        <div class="card h-100 shadow-sm border-0 service-card">
+            <img src="${service.image}" class="card-img-top service-icon" alt="${service.alt}" />
+            <div class="card-body d-flex flex-column">
+                <span class="badge badge-category align-self-start mb-3">${service.category}</span>
+                <h2 class="h5">${service.title}</h2>
+                <p class="mb-0">${service.description}</p>
+            </div>
+        </div>
+    </article>
+`;
+
+const renderServices = (items) => {
+    if (!servicesContainer) return;
+
+    if (items.length === 0) {
+        servicesContainer.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    No matching projects were found. Try another keyword.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    servicesContainer.innerHTML = items.map(createServiceCard).join('');
+
+    document.querySelectorAll('.service-card').forEach((card) => {
+        card.addEventListener('click', () => card.classList.toggle('border-primary'));
+    });
+};
+
+const filterServices = () => {
+    const keyword = serviceFilter.value.trim().toLowerCase();
+    const filteredServices = services.filter((service) => {
+        const searchableText = `${service.title} ${service.category} ${service.description}`.toLowerCase();
+        return searchableText.includes(keyword);
+    });
+    renderServices(filteredServices);
+};
+
+if (servicesContainer) {
+    renderServices(services);
+    serviceFilter?.addEventListener('input', filterServices);
+}
+
+// ---------- Contact page form validation ----------
+const contactForm = document.querySelector('#contactForm');
+const formAlert = document.querySelector('#formAlert');
+
+const showAlert = (messages, type = 'danger') => {
+    if (!formAlert) return;
+
+    const messageList = Array.isArray(messages) ? messages : [messages];
+    formAlert.innerHTML = `
+        <div class="alert alert-${type}" role="alert">
+            ${messageList.map((message) => `<div>${message}</div>`).join('')}
+        </div>
+    `;
+};
+
+contactForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const fullName = document.querySelector('#fullName').value.trim();
+    const email = document.querySelector('#email').value.trim();
+    const message = document.querySelector('#message').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const errors = [];
+
+    if (!fullName) errors.push('Full name is required.');
+    if (!email) errors.push('E-mail is required.');
+    if (email && !emailRegex.test(email)) errors.push('Please enter a valid e-mail address.');
+    if (!message) errors.push('Message is required.');
+    if (message && message.length < 10) errors.push('Message must be at least 10 characters long.');
+
+    if (errors.length > 0) {
+        showAlert(errors, 'danger');
+        return;
+    }
+
+    showAlert('Thank you! Your message passed validation. This demo form does not send data.', 'success');
+    contactForm.reset();
+});
